@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Transactions</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background: #007bff;
+    color: white;
+}
+
+tr:hover {
+    background: #f1f1f1;
+}
+
+.status {
+    font-weight: bold;
+}
+
+.btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 2px;
+    color: white;
+}
+
+.paid { background: #28a745; }
+.pending { background: #ffc107; color: black; }
+.delete { background: #dc3545; }
+
+.refresh {
+    display: block;
+    margin: 10px auto 20px;
+    padding: 10px 15px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+</style>
+
+<script>
+// Firebase config (same as your main page)
+var firebaseConfig = {
+    apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
+    authDomain: "year2-9413b.firebaseapp.com",
+    projectId: "year2-9413b",
+    storageBucket: "year2-9413b.appspot.com",
+    messagingSenderId: "2455619631",
+    appId: "1:2455619631:web:2074d4ee6c517d38021eda"
+};
+
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+function loadTransactions() {
+    const tableBody = document.getElementById("tableBody");
+    tableBody.innerHTML = "";
+
+    db.collection("transactions")
+    .orderBy("timestamp", "desc")
+    .get()
+    .then(snapshot => {
+        snapshot.forEach(doc => {
+            let data = data = doc.data();
+
+            let row = `
+                <tr>
+                    <td>${data.name || ''}</td>
+                    <td>${data.email || ''}</td>
+                    <td>${data.btcAmount || ''}</td>
+                    <td>$${(data.expectedAmount || 0).toLocaleString()}</td>
+                    <td>${data.bankName || ''}</td>
+                    <td>${data.bankAccount || ''}</td>
+                    <td class="status">${data.status || 'Processing'}</td>
+                    <td>
+                        <button class="btn paid" onclick="updateStatus('${doc.id}', 'Paid')">Paid</button>
+                        <button class="btn pending" onclick="updateStatus('${doc.id}', 'Pending')">Pending</button>
+                        <button class="btn delete" onclick="deleteTransaction('${doc.id}')">Delete</button>
+                    </td>
+                </tr>
+            `;
+
+            tableBody.innerHTML += row;
+        });
+    });
+}
+
+function updateStatus(id, status) {
+    db.collection("transactions").doc(id).update({
+        status: status
+    }).then(() => {
+        loadTransactions();
+    });
+}
+
+function deleteTransaction(id) {
+    if (confirm("Are you sure you want to delete this transaction?")) {
+        db.collection("transactions").doc(id).delete().then(() => {
+            loadTransactions();
+        });
+    }
+}
+
+window.onload = loadTransactions;
+
+</script>
+
+</head>
+<body>
+
+<h1>Admin Transaction Dashboard</h1>
+
+<button class="refresh" onclick="loadTransactions()">Refresh</button>
+
+<div class="table-container">
+<table>
+<thead>
+<tr>
+    <th>Name</th>
+    <th>Email</th>
+    <th>BTC</th>
+    <th>Expected ($)</th>
+    <th>Bank Name</th>
+    <th>Account No</th>
+    <th>Status</th>
+    <th>Actions</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+</body>
+</html>
