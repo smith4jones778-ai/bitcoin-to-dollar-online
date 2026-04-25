@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    padding: 15px;
+}
+
+/* HEADER */
+h1 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* TOP BAR */
+.top-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+input, select {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* TABLE (DESKTOP) */
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    display: none;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background: #007bff;
+    color: white;
+}
+
+/* CARD VIEW (MOBILE) */
+.cards {
+    display: grid;
+    gap: 15px;
+}
+
+.card {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+}
+
+/* BUTTONS */
+.btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 5px;
+    margin: 3px;
+    cursor: pointer;
+    color: white;
+    font-size: 12px;
+}
+
+.paid { background: #28a745; }
+.pending { background: #ffc107; color: black; }
+.notreceived { background: #6c757d; }
+.delete { background: #dc3545; }
+
+/* RESPONSIVE SWITCH */
+@media(min-width: 768px){
+    table { display: table; }
+    .cards { display: none; }
+}
+</style>
+
+<script>
+// Firebase
+var firebaseConfig = {
+    apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
+    authDomain: "year2-9413b.firebaseapp.com",
+    projectId: "year2-9413b"
+};
+
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+let allData = [];
+
+// LOAD DATA
+function loadTransactions() {
+
+    db.collection("transactions")
+    .orderBy("createdAt", "desc")
+    .onSnapshot(snapshot => {
+
+        allData = [];
+
+        snapshot.forEach(doc => {
+            allData.push({ id: doc.id, ...doc.data() });
+        });
+
+        renderData();
+    });
+}
+
+// RENDER
+function renderData() {
+
+    let search = document.getElementById("search").value.toLowerCase();
+    let filter = document.getElementById("filter").value;
+
+    let table = document.getElementById("tableBody");
+    let cards = document.getElementById("cards");
+
+    table.innerHTML = "";
+    cards.innerHTML = "";
+
+    allData.forEach(d => {
+
+        let text = JSON.stringify(d).toLowerCase();
+
+        if (!text.includes(search)) return;
+        if (filter !== "all" && d.status !== filter) return;
+
+        // TABLE ROW
+        table.innerHTML += `
+        <tr>
+            <td>${d.name}</td>
+            <td>${d.email}</td>
+            <td>${d.btcAmount}</td>
+            <td>$${d.expectedAmount.toLocaleString()}</td>
+            <td>${d.bankName}</td>
+            <td>${d.bankAccount}</td>
+            <td>${d.status}</td>
+            <td>
+                <button class="btn paid" onclick="updateStatus('${d.id}','Paid')">Paid</button>
+                <button class="btn pending" onclick="updateStatus('${d.id}','Pending')">Pending</button>
+                <button class="btn notreceived" onclick="updateStatus('${d.id}','Not Received')">NR</button>
+                <button class="btn delete" onclick="deleteTx('${d.id}')">Delete</button>
+            </td>
+        </tr>
+        `;
+
+        // CARD (MOBILE)
+        cards.innerHTML += `
+        <div class="card">
+            <b>${d.name}</b><br>
+            ${d.email}<br><br>
+
+            BTC: ${d.btcAmount}<br>
+            USD: $${d.expectedAmount.toLocaleString()}<br>
+            Bank: ${d.bankName}<br>
+            Acc: ${d.bankAccount}<br>
+
+            <b>Status: ${d.status}</b><br><br>
+
+            <button class="btn paid" onclick="updateStatus('${d.id}','Paid')">Paid</button>
+            <button class="btn pending" onclick="updateStatus('${d.id}','Pending')">Pending</button>
+            <button class="btn notreceived" onclick="updateStatus('${d.id}','Not Received')">NR</button>
+            <button class="btn delete" onclick="deleteTx('${d.id}')">Delete</button>
+        </div>
+        `;
+    });
+}
+
+// UPDATE
+function updateStatus(id, status) {
+    db.collection("transactions").doc(id).update({ status });
+}
+
+// DELETE
+function deleteTx(id) {
+    if (confirm("Delete transaction?")) {
+        db.collection("transactions").doc(id).delete();
+    }
+}
+
+window.onload = loadTransactions;
+</script>
+</head>
+
+<body>
+
+<h1>Admin Dashboard</h1>
+
+<div class="top-bar">
+    <input id="search" placeholder="Search..." onkeyup="renderData()">
+    
+    <select id="filter" onchange="renderData()">
+        <option value="all">All</option>
+        <option>Pending</option>
+        <option>Paid</option>
+        <option>Not Received</option>
+        <option>Transaction in progress</option>
+    </select>
+</div>
+
+<!-- TABLE -->
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>BTC</th>
+<th>USD</th>
+<th>Bank</th>
+<th>Account</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+</div>
+
+<!-- MOBILE CARDS -->
+<div id="cards" class="cards"></div>
+
+</body>
+</html>

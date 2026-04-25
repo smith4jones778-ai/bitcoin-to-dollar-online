@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitcoin Exchange</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    padding: 15px;
+    text-align: center;
+}
+
+.container {
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+h2 { margin-bottom: 10px; }
+
+input, button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background: #28a745;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover { background: #218838; }
+
+.copy-btn { background: #007bff; }
+.copy-btn:hover { background: #0056b3; }
+
+.status {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.note {
+    font-size: 14px;
+    color: #555;
+    margin-top: 10px;
+}
+
+.actions button {
+    margin-top: 10px;
+}
+
+#dashboardPage { display: none; }
+</style>
+
+<script>
+// Firebase
+var firebaseConfig = {
+    apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
+    authDomain: "year2-9413b.firebaseapp.com",
+    projectId: "year2-9413b"
+};
+
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+let currentUserId = null;
+
+// AUTO LOAD
+window.onload = function () {
+    let saved = localStorage.getItem("btcUser");
+
+    if (saved) {
+        currentUserId = saved;
+        showDashboard();
+    }
+};
+
+// CALCULATE
+function calculateAmount() {
+    let btc = parseFloat(document.getElementById("btc").value);
+    let usd = btc * 65000 || 0;
+    document.getElementById("usd").innerText = "$" + usd.toLocaleString();
+}
+
+// COPY
+function copyAddress() {
+    let input = document.getElementById("address");
+    input.select();
+    document.execCommand("copy");
+    alert("Copied");
+}
+
+// SUBMIT
+function submitTransaction() {
+
+    if (!document.getElementById("confirm").checked) {
+        alert("Confirm transfer first");
+        return;
+    }
+
+    let name = document.getElementById("name").value.trim();
+    let email = document.getElementById("email").value.trim().toLowerCase();
+    let btc = parseFloat(document.getElementById("btc").value);
+    let bank = document.getElementById("bank").value.trim();
+    let acc = document.getElementById("account").value.trim();
+
+    if (!name || !email || !btc || !bank || !acc) {
+        alert("Fill all fields");
+        return;
+    }
+
+    let expected = btc * 65000;
+    let userId = email + "_" + acc;
+
+    currentUserId = userId;
+
+    db.collection("transactions").doc(userId).set({
+        name,
+        email,
+        btcAmount: btc,
+        expectedAmount: expected,
+        bankName: bank,
+        bankAccount: acc,
+        status: "Transaction in progress",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+
+        localStorage.setItem("btcUser", userId);
+        showDashboard();
+    });
+}
+
+// SHOW DASHBOARD
+function showDashboard() {
+
+    document.getElementById("formPage").style.display = "none";
+    document.getElementById("dashboardPage").style.display = "block";
+
+    db.collection("transactions").doc(currentUserId)
+    .onSnapshot(doc => {
+
+        if (!doc.exists) return;
+
+        let d = doc.data();
+
+        let statusMessage = `
+            <div class="status">${d.status}</div>
+            <p class="note">
+                Your transaction is being reviewed.<br>
+                Do you wish to wait for admin confirmation or end this transaction?
+            </p>
+        `;
+
+        document.getElementById("dash").innerHTML = `
+            <h3>Hello, ${d.name}</h3>
+            <p><b>BTC:</b> ${d.btcAmount}</p>
+            <p><b>Expected:</b> $${d.expectedAmount.toLocaleString()}</p>
+            ${statusMessage}
+
+            <div class="actions">
+                <button onclick="wait()">Wait for Confirmation</button>
+                <button style="background:#dc3545" onclick="endTransaction()">End Transaction</button>
+            </div>
+        `;
+    });
+}
+
+// WAIT (just UX)
+function wait() {
+    alert("Please wait while admin confirms your transaction.");
+}
+
+// END TRANSACTION
+function endTransaction() {
+
+    if (!confirm("Are you sure you want to cancel this transaction?")) return;
+
+    db.collection("transactions").doc(currentUserId).delete()
+    .then(() => {
+        localStorage.removeItem("btcUser");
+        location.reload();
+    });
+}
+</script>
+</head>
+
+<body>
+
+<h2>Sell Bitcoin for Cash</h2>
+
+<!-- FORM -->
+<div id="formPage" class="container">
+
+<p>Send BTC to:</p>
+
+<input id="address" value="bc1qduk2py2dwc8aa37mvlnndh56lwqkrchs2yj2ej" readonly>
+<button class="copy-btn" onclick="copyAddress()">Copy Address</button>
+
+<input id="name" placeholder="Full Name">
+<input id="email" placeholder="Email">
+<input id="btc" type="number" step="0.0001" placeholder="BTC Amount" oninput="calculateAmount()">
+
+<p>You will receive: <b id="usd">$0</b></p>
+
+<input id="bank" placeholder="Bank Name">
+<input id="account" placeholder="Account Number">
+
+<label>
+<input type="checkbox" id="confirm"> I have sent the Bitcoin
+</label>
+
+<button onclick="submitTransaction()">Submit</button>
+
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardPage" class="container">
+<h2>Transaction Dashboard</h2>
+<div id="dash"></div>
+</div>
+
+</body>
+</html>
