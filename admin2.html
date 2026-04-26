@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+
+<style>
+body {
+  margin:0;
+  font-family:'Segoe UI', sans-serif;
+  background:#f4f7fb;
+}
+
+.header {
+  background:#0a1f44;
+  color:white;
+  padding:15px;
+  text-align:center;
+}
+
+.container {
+  max-width:1000px;
+  margin:20px auto;
+  padding:10px;
+}
+
+/* CARD */
+.card {
+  background:white;
+  padding:15px;
+  margin:10px;
+  border-radius:12px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+}
+
+/* GRID */
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:10px;
+}
+
+/* BUTTONS */
+button {
+  padding:10px;
+  margin-top:8px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  color:white;
+}
+
+.approve { background:#28a745; }
+.process { background:#007bff; }
+.complete { background:#17a2b8; }
+.reject { background:#dc3545; }
+
+/* INPUT */
+textarea, select {
+  width:100%;
+  margin-top:8px;
+  padding:10px;
+  border-radius:6px;
+  border:1px solid #ddd;
+}
+
+/* LABEL */
+.label {
+  font-size:13px;
+  color:#666;
+}
+
+/* STATUS */
+.status {
+  font-weight:bold;
+  margin-top:5px;
+}
+
+.badge {
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  color:white;
+}
+
+.submitted { background:gray; }
+.reviewing { background:orange; }
+.processing { background:blue; }
+.completed { background:green; }
+.rejected { background:red; }
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h2>Crypto Admin Dashboard</h2>
+</div>
+
+<div class="container">
+  <div id="list" class="grid"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
+    authDomain: "year2-9413b.firebaseapp.com",
+    databaseURL: "https://year2-9413b-default-rtdb.firebaseio.com",
+    projectId: "year2-9413b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* REALTIME FETCH */
+db.ref("transactions").on("value", snap=>{
+  list.innerHTML = "";
+
+  snap.forEach(child=>{
+    const d = child.val();
+    const id = child.key;
+
+    list.innerHTML += `
+      <div class="card">
+        <h3>${d.name}</h3>
+
+        <div class="label">Type</div>
+        <div><b>${d.type}</b></div>
+
+        <div class="label">Amount</div>
+        <div>$${d.usd} / ${d.btc} BTC</div>
+
+        <div class="label">Email</div>
+        <div>${d.email}</div>
+
+        <div class="label">Phone</div>
+        <div>${d.phone}</div>
+
+        <div class="label">Location</div>
+        <div>${d.location}</div>
+
+        <div class="status">
+          Status: <span class="badge ${d.status}">${d.status}</span>
+        </div>
+
+        <textarea id="note-${id}" placeholder="Admin message...">${d.adminNote || ""}</textarea>
+
+        <select id="status-${id}">
+          <option value="submitted">Submitted</option>
+          <option value="reviewing">Reviewing</option>
+          <option value="processing">Processing</option>
+          <option value="completed">Completed</option>
+          <option value="rejected">Rejected</option>
+        </select>
+
+        <button class="approve" onclick="update('${id}')">Update</button>
+      </div>
+    `;
+  });
+});
+
+/* UPDATE FUNCTION */
+function update(id){
+  const status = document.getElementById("status-"+id).value;
+  const note = document.getElementById("note-"+id).value;
+
+  db.ref("transactions/"+id).update({
+    status: status,
+    adminNote: note
+  });
+
+  alert("Updated!");
+}
+</script>
+
+</body>
+</html>

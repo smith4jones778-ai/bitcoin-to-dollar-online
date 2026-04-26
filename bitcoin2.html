@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Exchange Portal</title>
+
+<style>
+body {
+  margin:0;
+  font-family: 'Segoe UI', Arial;
+  background:#eef2f7;
+}
+
+/* HEADER */
+.header {
+  background:#0a1f44;
+  color:white;
+  padding:20px;
+  text-align:center;
+}
+
+.header h1 {
+  margin:0;
+  font-size:20px;
+}
+
+.header p {
+  font-size:13px;
+  opacity:0.8;
+}
+
+/* CARD */
+.card {
+  max-width:520px;
+  margin:20px auto;
+  background:white;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.08);
+}
+
+input, select {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ddd;
+}
+
+button {
+  width:100%;
+  padding:13px;
+  margin-top:15px;
+  border:none;
+  border-radius:8px;
+  background:#0a84ff;
+  color:white;
+  font-weight:bold;
+}
+
+button.secondary {
+  background:#6c757d;
+}
+
+button.danger {
+  background:#dc3545;
+}
+
+.copy-box {
+  display:flex;
+  gap:6px;
+  margin-top:10px;
+}
+
+.copy-box input { flex:1; }
+
+.copy-box button {
+  width:90px;
+  background:#28a745;
+}
+
+.hidden { display:none; }
+
+/* STATUS */
+.status {
+  padding:10px;
+  margin-top:15px;
+  border-radius:6px;
+  background:#f1f5ff;
+  text-align:center;
+  font-weight:bold;
+}
+
+/* LOADER */
+.loader {
+  border:5px solid #eee;
+  border-top:5px solid #0a84ff;
+  border-radius:50%;
+  width:50px;
+  height:50px;
+  margin:30px auto;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Secure Crypto Exchange</h1>
+  <p>Buy and Sell Bitcoin safely with real-time processing</p>
+</div>
+
+<!-- FORM -->
+<div class="card" id="formBox">
+  <h3>Start Transaction</h3>
+
+  <p style="font-size:13px;color:#666;">
+    Fill your details correctly. Follow instructions carefully for successful processing.
+  </p>
+
+  <input id="name" placeholder="Full Name" required>
+  <input id="email" placeholder="Email">
+  <input id="phone" placeholder="Phone Number">
+  <input id="location" placeholder="Location">
+
+  <select id="type" onchange="toggleMode()">
+    <option value="buy">Buy Bitcoin</option>
+    <option value="sell">Sell Bitcoin</option>
+  </select>
+
+  <input id="usd" type="number" placeholder="Amount in USD">
+  <input id="btc" type="number" placeholder="BTC Equivalent">
+
+  <!-- BUY -->
+  <div id="buySection">
+    <p><b>Send Payment To:</b></p>
+    <div class="copy-box">
+      <input id="bankDetails" value="Bank: Access Bank | Acc: 0123456789 | Crypto Ltd" readonly>
+      <button onclick="copyText('bankDetails')">Copy</button>
+    </div>
+    <input id="userWallet" placeholder="Your BTC Wallet Address">
+  </div>
+
+  <!-- SELL -->
+  <div id="sellSection" class="hidden">
+    <p><b>Send BTC To:</b></p>
+    <div class="copy-box">
+      <input id="btcAddress" value="bc1qexamplewalletaddress12345xyz" readonly>
+      <button onclick="copyText('btcAddress')">Copy</button>
+    </div>
+
+    <input id="bankName" placeholder="Your Bank Name">
+    <input id="accountNumber" placeholder="Account Number">
+    <input id="accountName" placeholder="Account Name">
+  </div>
+
+  <button onclick="startProcessing()">Proceed</button>
+</div>
+
+<!-- LOADING -->
+<div class="card hidden" id="loadingBox">
+  <div class="loader"></div>
+  <p style="text-align:center;">Processing...</p>
+</div>
+
+<!-- SUMMARY -->
+<div class="card hidden" id="summaryBox">
+  <h3>Transaction Summary</h3>
+  <div id="summary"></div>
+
+  <button onclick="confirmTransaction()">Confirm</button>
+  <button class="danger" onclick="cancelTransaction()">Cancel</button>
+</div>
+
+<!-- DASHBOARD -->
+<div class="card hidden" id="dashboard">
+  <h3>Transaction Dashboard</h3>
+  <div id="details"></div>
+  <div class="status" id="status"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
+    authDomain: "year2-9413b.firebaseapp.com",
+    databaseURL: "https://year2-9413b-default-rtdb.firebaseio.com",
+    projectId: "year2-9413b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let rate = 65000;
+let tempData = null;
+
+// conversion
+usd.oninput = ()=> btc.value = (usd.value / rate).toFixed(6);
+btc.oninput = ()=> usd.value = (btc.value * rate).toFixed(2);
+
+// toggle
+function toggleMode(){
+  buySection.classList.toggle("hidden", type.value !== "buy");
+  sellSection.classList.toggle("hidden", type.value !== "sell");
+}
+
+// copy
+function copyText(id){
+  navigator.clipboard.writeText(document.getElementById(id).value);
+  alert("Copied!");
+}
+
+// start
+function startProcessing(){
+  if(!name.value || !email.value){
+    alert("Fill required fields");
+    return;
+  }
+
+  tempData = {
+    name:name.value,
+    email:email.value,
+    phone:phone.value,
+    location:location.value,
+    type:type.value,
+    usd:usd.value,
+    btc:btc.value,
+    status:"submitted",
+    time:new Date().toLocaleString()
+  };
+
+  if(type.value==="buy"){
+    tempData.wallet = userWallet.value;
+  } else {
+    tempData.bankName = bankName.value;
+    tempData.accountNumber = accountNumber.value;
+    tempData.accountName = accountName.value;
+  }
+
+  formBox.classList.add("hidden");
+  loadingBox.classList.remove("hidden");
+
+  setTimeout(showSummary,1200);
+}
+
+// summary
+function showSummary(){
+  loadingBox.classList.add("hidden");
+  summaryBox.classList.remove("hidden");
+
+  summary.innerHTML = `
+    <b>${tempData.name}</b><br>
+    ${tempData.type.toUpperCase()}<br>
+    $${tempData.usd} / ${tempData.btc} BTC<br>
+    ${tempData.time}
+  `;
+}
+
+// cancel
+function cancelTransaction(){
+  summaryBox.classList.add("hidden");
+  formBox.classList.remove("hidden");
+}
+
+// confirm
+function confirmTransaction(){
+  const id = "TX-" + Date.now();
+  localStorage.setItem("userId", id);
+
+  db.ref("transactions/"+id).set(tempData);
+
+  summaryBox.classList.add("hidden");
+  loadDashboard(id);
+}
+
+// dashboard
+function loadDashboard(id){
+  dashboard.classList.remove("hidden");
+
+  db.ref("transactions/"+id).on("value", snap=>{
+    const d = snap.val();
+    if(!d) return;
+
+    details.innerHTML = `
+      <b>${d.name}</b><br>
+      ${d.type}<br>
+      $${d.usd} / ${d.btc} BTC<br>
+      ${d.time}
+    `;
+
+    status.innerText = "Status: " + d.status;
+  });
+}
+
+// auto load
+let userId = localStorage.getItem("userId");
+if(userId){
+  formBox.classList.add("hidden");
+  loadDashboard(userId);
+}
+</script>
+
+</body>
+</html>
