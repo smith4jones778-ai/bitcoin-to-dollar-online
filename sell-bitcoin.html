@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Secure Crypto Exchange Portal</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:#eef2f7;
+  color:#222;
+}
+
+/* HEADER */
+.header{
+  background:linear-gradient(135deg,#081b3a,#0a84ff);
+  color:white;
+  padding:30px 20px;
+  text-align:center;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+.header h1{
+  margin:0;
+  font-size:26px;
+}
+
+.header p{
+  margin-top:8px;
+  opacity:0.9;
+  font-size:14px;
+}
+
+/* CARD */
+.card{
+  max-width:560px;
+  margin:25px auto;
+  background:white;
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+
+.card h3{
+  margin-top:0;
+}
+
+/* FORM */
+input,
+select{
+  width:100%;
+  padding:13px;
+  margin-top:12px;
+  border-radius:10px;
+  border:1px solid #d7dbe2;
+  outline:none;
+  font-size:14px;
+  transition:0.2s;
+}
+
+input:focus,
+select:focus{
+  border-color:#0a84ff;
+  box-shadow:0 0 0 3px rgba(10,132,255,0.1);
+}
+
+button{
+  width:100%;
+  padding:14px;
+  margin-top:16px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
+  font-size:15px;
+  transition:0.2s;
+}
+
+button:hover{
+  opacity:0.92;
+}
+
+.primary{
+  background:#0a84ff;
+  color:white;
+}
+
+.secondary{
+  background:#6c757d;
+  color:white;
+}
+
+.danger{
+  background:#dc3545;
+  color:white;
+}
+
+.success{
+  background:#28a745;
+  color:white;
+}
+
+.copy-box{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+
+.copy-box input{
+  flex:1;
+  margin-top:0;
+}
+
+.copy-box button{
+  width:100px;
+  margin-top:0;
+}
+
+.hidden{
+  display:none;
+}
+
+.notice{
+  background:#f5f9ff;
+  padding:12px;
+  border-radius:10px;
+  font-size:13px;
+  line-height:1.6;
+  color:#444;
+  margin-bottom:10px;
+}
+
+/* STATUS */
+.status{
+  margin-top:18px;
+  padding:14px;
+  border-radius:10px;
+  background:#f1f5ff;
+  text-align:center;
+  font-weight:bold;
+  color:#0a1f44;
+}
+
+/* LOADER */
+.loader{
+  border:5px solid #eee;
+  border-top:5px solid #0a84ff;
+  border-radius:50%;
+  width:55px;
+  height:55px;
+  margin:25px auto;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+.summary-box{
+  background:#f8fbff;
+  border:1px solid #dfe9ff;
+  padding:15px;
+  border-radius:10px;
+  line-height:1.8;
+}
+
+.badge{
+  display:inline-block;
+  padding:6px 12px;
+  border-radius:50px;
+  background:#0a84ff;
+  color:white;
+  font-size:12px;
+  margin-top:10px;
+}
+
+.tx-id{
+  background:#eef4ff;
+  padding:10px;
+  border-radius:8px;
+  margin-top:10px;
+  font-size:13px;
+  word-break:break-all;
+}
+
+/* ADMIN TABLE */
+.table-wrap{
+  overflow-x:auto;
+  margin-top:20px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+table th,
+table td{
+  border:1px solid #e3e7ef;
+  padding:10px;
+  text-align:left;
+  font-size:13px;
+}
+
+table th{
+  background:#0a1f44;
+  color:white;
+}
+
+.action-btn{
+  padding:8px 12px;
+  margin-top:5px;
+  border-radius:6px;
+  font-size:12px;
+}
+
+@media(max-width:600px){
+  .copy-box{
+    flex-direction:column;
+  }
+
+  .copy-box button{
+    width:100%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>Secure Crypto Exchange</h1>
+  <p>Fast, Secure & Real-Time Bitcoin Processing</p>
+</div>
+
+<!-- USER FORM -->
+<div class="card" id="formBox">
+
+  <h3>Start Transaction</h3>
+
+  <div class="notice">
+    Fill all information correctly before submitting your transaction.
+    Your dashboard will automatically update after submission.
+  </div>
+
+  <input id="name" type="text" placeholder="Full Name" />
+  <input id="email" type="email" placeholder="Email Address" />
+  <input id="phone" type="tel" placeholder="Phone Number" />
+  <input id="location" type="text" placeholder="Location" />
+
+  <select id="type" onchange="toggleMode()">
+    <option value="buy">Buy Bitcoin</option>
+    <option value="sell">Sell Bitcoin</option>
+  </select>
+
+  <input id="usd" type="number" placeholder="Amount in USD" />
+  <input id="btc" type="number" placeholder="BTC Equivalent" />
+
+  <!-- BUY -->
+  <div id="buySection">
+
+    <p><b>Send Payment To:</b></p>
+
+    <div class="copy-box">
+      <input
+        id="bankDetails"
+        value="Access Bank | 0123456789 | Crypto Exchange Ltd"
+        readonly
+      />
+      <button class="success" onclick="copyText('bankDetails')">
+        Copy
+      </button>
+    </div>
+
+    <input
+      id="userWallet"
+      type="text"
+      placeholder="Your BTC Wallet Address"
+    />
+
+  </div>
+
+  <!-- SELL -->
+  <div id="sellSection" class="hidden">
+
+    <p><b>Send BTC To:</b></p>
+
+    <div class="copy-box">
+      <input
+        id="btcAddress"
+        value="bc1qexamplewalletaddress12345xyz"
+        readonly
+      />
+
+      <button class="success" onclick="copyText('btcAddress')">
+        Copy
+      </button>
+    </div>
+
+    <input id="bankName" type="text" placeholder="Bank Name" />
+    <input id="accountNumber" type="number" placeholder="Account Number" />
+    <input id="accountName" type="text" placeholder="Account Name" />
+
+  </div>
+
+  <button class="primary" onclick="startProcessing()">
+    Proceed
+  </button>
+
+</div>
+
+<!-- LOADING -->
+<div class="card hidden" id="loadingBox">
+  <div class="loader"></div>
+  <p style="text-align:center;font-weight:bold;">
+    Processing Transaction...
+  </p>
+</div>
+
+<!-- SUMMARY -->
+<div class="card hidden" id="summaryBox">
+
+  <h3>Transaction Summary</h3>
+
+  <div class="summary-box" id="summary"></div>
+
+  <button class="primary" onclick="confirmTransaction()">
+    Confirm Transaction
+  </button>
+
+  <button class="danger" onclick="cancelTransaction()">
+    Cancel
+  </button>
+
+</div>
+
+<!-- DASHBOARD -->
+<div class="card hidden" id="dashboard">
+
+  <h3>User Dashboard</h3>
+
+  <div id="details"></div>
+
+  <div class="status" id="status">
+    Waiting...
+  </div>
+
+</div>
+
+<!-- ADMIN PAGE -->
+<div class="card">
+
+  <h3>Admin Dashboard</h3>
+
+  <button class="secondary" onclick="loadAllTransactions()">
+    Refresh Transactions
+  </button>
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>TX ID</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>USD</th>
+          <th>Status</th>
+          <th>Time</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="adminTable">
+        <tr>
+          <td colspan="7" style="text-align:center;">
+            No transactions yet
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
+  authDomain: "year2-9413b.firebaseapp.com",
+  databaseURL: "https://year2-9413b-default-rtdb.firebaseio.com",
+  projectId: "year2-9413b"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+let rate = 65000;
+let tempData = null;
+
+/* ELEMENTS */
+const usd = document.getElementById("usd");
+const btc = document.getElementById("btc");
+
+/* AUTO CONVERT */
+usd.addEventListener("input", () => {
+  if(usd.value){
+    btc.value = (usd.value / rate).toFixed(6);
+  }else{
+    btc.value = "";
+  }
+});
+
+btc.addEventListener("input", () => {
+  if(btc.value){
+    usd.value = (btc.value * rate).toFixed(2);
+  }else{
+    usd.value = "";
+  }
+});
+
+/* TOGGLE MODE */
+function toggleMode(){
+
+  const mode = document.getElementById("type").value;
+
+  document.getElementById("buySection")
+    .classList.toggle("hidden", mode !== "buy");
+
+  document.getElementById("sellSection")
+    .classList.toggle("hidden", mode !== "sell");
+}
+
+/* COPY */
+function copyText(id){
+
+  const text = document.getElementById(id).value;
+
+  navigator.clipboard.writeText(text);
+
+  alert("Copied successfully");
+}
+
+/* VALIDATE */
+function validateFields(){
+
+  const mode = document.getElementById("type").value;
+
+  if(!name.value.trim()){
+    alert("Full name is required");
+    return false;
+  }
+
+  if(!email.value.trim()){
+    alert("Email is required");
+    return false;
+  }
+
+  if(!phone.value.trim()){
+    alert("Phone number is required");
+    return false;
+  }
+
+  if(!location.value.trim()){
+    alert("Location is required");
+    return false;
+  }
+
+  if(!usd.value || Number(usd.value) <= 0){
+    alert("Enter valid USD amount");
+    return false;
+  }
+
+  if(!btc.value || Number(btc.value) <= 0){
+    alert("Enter valid BTC amount");
+    return false;
+  }
+
+  if(mode === "buy"){
+
+    if(!userWallet.value.trim()){
+      alert("Wallet address is required");
+      return false;
+    }
+
+  }else{
+
+    if(!bankName.value.trim()){
+      alert("Bank name is required");
+      return false;
+    }
+
+    if(!accountNumber.value.trim()){
+      alert("Account number is required");
+      return false;
+    }
+
+    if(!accountName.value.trim()){
+      alert("Account name is required");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/* START */
+function startProcessing(){
+
+  if(!validateFields()){
+    return;
+  }
+
+  tempData = {
+    name: name.value.trim(),
+    email: email.value.trim(),
+    phone: phone.value.trim(),
+    location: location.value.trim(),
+    type: type.value,
+    usd: usd.value,
+    btc: btc.value,
+    status: "Pending",
+    createdAt: Date.now(),
+    time: new Date().toLocaleString()
+  };
+
+  if(type.value === "buy"){
+
+    tempData.wallet = userWallet.value.trim();
+
+  }else{
+
+    tempData.bankName = bankName.value.trim();
+    tempData.accountNumber = accountNumber.value.trim();
+    tempData.accountName = accountName.value.trim();
+  }
+
+  formBox.classList.add("hidden");
+  loadingBox.classList.remove("hidden");
+
+  setTimeout(showSummary, 1500);
+}
+
+/* SHOW SUMMARY */
+function showSummary(){
+
+  loadingBox.classList.add("hidden");
+
+  summaryBox.classList.remove("hidden");
+
+  summary.innerHTML = `
+    <b>Name:</b> ${tempData.name}<br>
+    <b>Transaction:</b> ${tempData.type.toUpperCase()} BTC<br>
+    <b>USD:</b> $${tempData.usd}<br>
+    <b>BTC:</b> ${tempData.btc}<br>
+    <b>Time:</b> ${tempData.time}<br>
+
+    <div class="badge">
+      Waiting For Confirmation
+    </div>
+  `;
+}
+
+/* CANCEL */
+function cancelTransaction(){
+
+  summaryBox.classList.add("hidden");
+
+  formBox.classList.remove("hidden");
+}
+
+/* CONFIRM */
+function confirmTransaction(){
+
+  const id = "TX-" + Date.now();
+
+  tempData.transactionId = id;
+
+  localStorage.setItem("userId", id);
+
+  db.ref("transactions/" + id)
+    .set(tempData)
+    .then(() => {
+
+      summaryBox.classList.add("hidden");
+
+      loadDashboard(id);
+
+      loadAllTransactions();
+
+    })
+    .catch(err => {
+      alert("Error: " + err.message);
+    });
+}
+
+/* USER DASHBOARD */
+function loadDashboard(id){
+
+  dashboard.classList.remove("hidden");
+
+  db.ref("transactions/" + id)
+    .on("value", snap => {
+
+      const d = snap.val();
+
+      if(!d) return;
+
+      details.innerHTML = `
+        <div class="summary-box">
+
+          <b>Name:</b> ${d.name}<br>
+          <b>Email:</b> ${d.email}<br>
+          <b>Phone:</b> ${d.phone}<br>
+          <b>Type:</b> ${d.type}<br>
+          <b>USD:</b> $${d.usd}<br>
+          <b>BTC:</b> ${d.btc}<br>
+          <b>Time:</b> ${d.time}<br>
+
+          <div class="tx-id">
+            Transaction ID: ${d.transactionId}
+          </div>
+
+        </div>
+      `;
+
+      status.innerHTML = `
+        Current Status: <b>${d.status}</b>
+      `;
+    });
+}
+
+/* ADMIN LOAD */
+function loadAllTransactions(){
+
+  db.ref("transactions")
+    .orderByChild("createdAt")
+    .once("value", snap => {
+
+      const data = snap.val();
+
+      const table = document.getElementById("adminTable");
+
+      table.innerHTML = "";
+
+      if(!data){
+
+        table.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align:center;">
+              No transactions found
+            </td>
+          </tr>
+        `;
+
+        return;
+      }
+
+      Object.keys(data).reverse().forEach(id => {
+
+        const d = data[id];
+
+        table.innerHTML += `
+          <tr>
+
+            <td>${id}</td>
+            <td>${d.name}</td>
+            <td>${d.type}</td>
+            <td>$${d.usd}</td>
+            <td>${d.status}</td>
+            <td>${d.time}</td>
+
+            <td>
+
+              <button
+                class="action-btn success"
+                onclick="updateStatus('${id}','Completed')"
+              >
+                Complete
+              </button>
+
+              <button
+                class="action-btn danger"
+                onclick="updateStatus('${id}','Cancelled')"
+              >
+                Cancel
+              </button>
+
+            </td>
+
+          </tr>
+        `;
+      });
+    });
+}
+
+/* UPDATE STATUS */
+function updateStatus(id, status){
+
+  db.ref("transactions/" + id)
+    .update({
+      status: status
+    });
+
+  loadAllTransactions();
+}
+
+/* AUTO LOAD USER */
+const savedId = localStorage.getItem("userId");
+
+if(savedId){
+
+  formBox.classList.add("hidden");
+
+  loadDashboard(savedId);
+}
+
+/* INITIAL ADMIN LOAD */
+loadAllTransactions();
+</script>
+
+</body>
+</html>
