@@ -1,181 +1,570 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crypto Exchange Admin Dashboard</title>
 
 <style>
-body {
+*{
   margin:0;
-  font-family:'Segoe UI', sans-serif;
-  background:#f4f7fb;
+  padding:0;
+  box-sizing:border-box;
 }
 
-.header {
+body{
+  font-family:'Segoe UI', Arial, sans-serif;
+  background:#eef2f7;
+  color:#222;
+}
+
+/* HEADER */
+.header{
   background:#0a1f44;
   color:white;
-  padding:15px;
+  padding:22px;
   text-align:center;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
-.container {
-  max-width:1000px;
+.header h1{
+  font-size:24px;
+}
+
+.header p{
+  margin-top:5px;
+  font-size:14px;
+  opacity:0.9;
+}
+
+/* CONTAINER */
+.container{
+  width:95%;
+  max-width:1300px;
   margin:20px auto;
-  padding:10px;
 }
 
-/* CARD */
-.card {
-  background:white;
-  padding:15px;
-  margin:10px;
-  border-radius:12px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.08);
+/* TOP BAR */
+.top-bar{
+  display:flex;
+  gap:15px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
 }
 
-/* GRID */
-.grid {
+.top-bar input,
+.top-bar select{
+  flex:1;
+  min-width:220px;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  outline:none;
+  font-size:14px;
+}
+
+/* STATS */
+.stats{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-  gap:10px;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px;
+  margin-bottom:20px;
 }
 
-/* BUTTONS */
-button {
-  padding:10px;
-  margin-top:8px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
+.stat-card{
+  background:white;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.06);
+}
+
+.stat-card h3{
+  font-size:14px;
+  color:#666;
+  margin-bottom:10px;
+}
+
+.stat-card p{
+  font-size:28px;
+  font-weight:bold;
+  color:#0a1f44;
+}
+
+/* TABLE */
+.table-wrapper{
+  overflow:auto;
+  background:white;
+  border-radius:16px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.06);
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1100px;
+}
+
+thead{
+  background:#0a1f44;
   color:white;
 }
 
-.approve { background:#28a745; }
-.process { background:#007bff; }
-.complete { background:#17a2b8; }
-.reject { background:#dc3545; }
-
-/* INPUT */
-textarea, select {
-  width:100%;
-  margin-top:8px;
-  padding:10px;
-  border-radius:6px;
-  border:1px solid #ddd;
+th, td{
+  padding:14px;
+  text-align:left;
+  border-bottom:1px solid #eee;
+  font-size:14px;
+  vertical-align:top;
 }
 
-/* LABEL */
-.label {
-  font-size:13px;
-  color:#666;
+tbody tr:hover{
+  background:#f8fbff;
 }
 
 /* STATUS */
-.status {
-  font-weight:bold;
-  margin-top:5px;
-}
-
-.badge {
-  display:inline-block;
-  padding:4px 8px;
-  border-radius:6px;
+.status{
+  padding:6px 10px;
+  border-radius:30px;
   font-size:12px;
-  color:white;
+  font-weight:bold;
+  display:inline-block;
 }
 
-.submitted { background:gray; }
-.reviewing { background:orange; }
-.processing { background:blue; }
-.completed { background:green; }
-.rejected { background:red; }
+.pending{
+  background:#fff3cd;
+  color:#856404;
+}
 
+.success{
+  background:#d4edda;
+  color:#155724;
+}
+
+.cancelled{
+  background:#f8d7da;
+  color:#721c24;
+}
+
+/* BUTTONS */
+.action-btn{
+  border:none;
+  padding:8px 12px;
+  border-radius:8px;
+  color:white;
+  cursor:pointer;
+  margin:2px;
+  font-size:12px;
+}
+
+.success-btn{
+  background:#28a745;
+}
+
+.pending-btn{
+  background:#ffc107;
+  color:#222;
+}
+
+.cancel-btn{
+  background:#dc3545;
+}
+
+.delete-btn{
+  background:#111827;
+}
+
+.refresh-btn{
+  background:#0a84ff;
+  color:white;
+  border:none;
+  padding:12px 18px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+}
+
+/* EMPTY */
+.empty{
+  padding:40px;
+  text-align:center;
+  color:#777;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+
+  .top-bar{
+    flex-direction:column;
+  }
+
+}
 </style>
 </head>
 
 <body>
 
 <div class="header">
-  <h2>Crypto Admin Dashboard</h2>
+  <h1>Crypto Exchange Admin Dashboard</h1>
+  <p>Manage and monitor all user transactions in real-time</p>
 </div>
 
 <div class="container">
-  <div id="list" class="grid"></div>
+
+  <!-- SEARCH -->
+  <div class="top-bar">
+
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search by name, email, phone or transaction ID..."
+    />
+
+    <select id="filterStatus">
+      <option value="all">All Status</option>
+      <option value="pending">Pending</option>
+      <option value="success">Success</option>
+      <option value="cancelled">Cancelled</option>
+    </select>
+
+    <button class="refresh-btn" id="refreshBtn">
+      Refresh
+    </button>
+
+  </div>
+
+  <!-- STATS -->
+  <div class="stats">
+
+    <div class="stat-card">
+      <h3>Total Transactions</h3>
+      <p id="totalTransactions">0</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Pending</h3>
+      <p id="pendingTransactions">0</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Successful</h3>
+      <p id="successfulTransactions">0</p>
+    </div>
+
+    <div class="stat-card">
+      <h3>Cancelled</h3>
+      <p id="cancelledTransactions">0</p>
+    </div>
+
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrapper">
+
+    <table>
+
+      <thead>
+        <tr>
+          <th>Transaction ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Location</th>
+          <th>Type</th>
+          <th>USD</th>
+          <th>BTC</th>
+          <th>Wallet / Bank</th>
+          <th>Status</th>
+          <th>Time</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody id="transactionTable">
+        <tr>
+          <td colspan="12" class="empty">
+            Loading transactions...
+          </td>
+        </tr>
+      </tbody>
+
+    </table>
+
+  </div>
+
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
+/* =========================
+   FIREBASE CONFIG
+========================= */
+
 const firebaseConfig = {
-    apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
-    authDomain: "year2-9413b.firebaseapp.com",
-    databaseURL: "https://year2-9413b-default-rtdb.firebaseio.com",
-    projectId: "year2-9413b"
+  apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
+  authDomain: "year2-9413b.firebaseapp.com",
+  databaseURL: "https://year2-9413b-default-rtdb.firebaseio.com",
+  projectId: "year2-9413b"
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.database();
 
-/* REALTIME FETCH */
-db.ref("transactions").on("value", snap=>{
-  list.innerHTML = "";
+/* =========================
+   ELEMENTS
+========================= */
 
-  snap.forEach(child=>{
-    const d = child.val();
-    const id = child.key;
+const tableBody = document.getElementById("transactionTable");
 
-    list.innerHTML += `
-      <div class="card">
-        <h3>${d.name}</h3>
+const searchInput = document.getElementById("searchInput");
+const filterStatus = document.getElementById("filterStatus");
 
-        <div class="label">Type</div>
-        <div><b>${d.type}</b></div>
+const totalTransactions = document.getElementById("totalTransactions");
+const pendingTransactions = document.getElementById("pendingTransactions");
+const successfulTransactions = document.getElementById("successfulTransactions");
+const cancelledTransactions = document.getElementById("cancelledTransactions");
 
-        <div class="label">Amount</div>
-        <div>$${d.usd} / ${d.btc} BTC</div>
+/* =========================
+   VARIABLES
+========================= */
 
-        <div class="label">Email</div>
-        <div>${d.email}</div>
+let allTransactions = {};
 
-        <div class="label">Phone</div>
-        <div>${d.phone}</div>
+/* =========================
+   LOAD TRANSACTIONS
+========================= */
 
-        <div class="label">Location</div>
-        <div>${d.location}</div>
+function loadTransactions(){
 
-        <div class="status">
-          Status: <span class="badge ${d.status}">${d.status}</span>
-        </div>
+  db.ref("transactions").on("value", snapshot => {
 
-        <textarea id="note-${id}" placeholder="Admin message...">${d.adminNote || ""}</textarea>
+    allTransactions = snapshot.val() || {};
 
-        <select id="status-${id}">
-          <option value="submitted">Submitted</option>
-          <option value="reviewing">Reviewing</option>
-          <option value="processing">Processing</option>
-          <option value="completed">Completed</option>
-          <option value="rejected">Rejected</option>
-        </select>
+    renderTransactions();
 
-        <button class="approve" onclick="update('${id}')">Update</button>
-      </div>
+    updateStats();
+  });
+}
+
+/* =========================
+   UPDATE STATS
+========================= */
+
+function updateStats(){
+
+  const transactions = Object.values(allTransactions);
+
+  totalTransactions.textContent = transactions.length;
+
+  pendingTransactions.textContent = transactions.filter(t =>
+    (t.status || "").toLowerCase().includes("pending")
+  ).length;
+
+  successfulTransactions.textContent = transactions.filter(t =>
+    (t.status || "").toLowerCase().includes("success")
+  ).length;
+
+  cancelledTransactions.textContent = transactions.filter(t =>
+    (t.status || "").toLowerCase().includes("cancel")
+  ).length;
+}
+
+/* =========================
+   RENDER TABLE
+========================= */
+
+function renderTransactions(){
+
+  const search = searchInput.value.toLowerCase();
+  const filter = filterStatus.value;
+
+  const entries = Object.entries(allTransactions);
+
+  if(entries.length === 0){
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="12" class="empty">
+          No transactions found
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  let html = "";
+
+  entries.reverse().forEach(([id, data]) => {
+
+    const status = (data.status || "Pending").toLowerCase();
+
+    const matchSearch =
+      id.toLowerCase().includes(search) ||
+      (data.name || "").toLowerCase().includes(search) ||
+      (data.email || "").toLowerCase().includes(search) ||
+      (data.phone || "").toLowerCase().includes(search);
+
+    const matchFilter =
+      filter === "all" ||
+      status.includes(filter);
+
+    if(!matchSearch || !matchFilter) return;
+
+    let walletInfo = "";
+
+    if(data.type === "buy"){
+
+      walletInfo = `
+        <b>Wallet:</b><br>
+        ${data.wallet || "-"}
+      `;
+
+    } else {
+
+      walletInfo = `
+        <b>${data.bankName || "-"}</b><br>
+        ${data.accountNumber || "-"}<br>
+        ${data.accountName || "-"}
+      `;
+    }
+
+    html += `
+      <tr>
+
+        <td>${id}</td>
+
+        <td>${data.name || "-"}</td>
+
+        <td>${data.email || "-"}</td>
+
+        <td>${data.phone || "-"}</td>
+
+        <td>${data.location || "-"}</td>
+
+        <td>
+          ${(data.type || "-").toUpperCase()}
+        </td>
+
+        <td>
+          $${data.usd || "0"}
+        </td>
+
+        <td>
+          ${data.btc || "0"} BTC
+        </td>
+
+        <td>
+          ${walletInfo}
+        </td>
+
+        <td>
+          <span class="status ${status}">
+            ${data.status || "Pending"}
+          </span>
+        </td>
+
+        <td>
+          ${data.time || "-"}
+        </td>
+
+        <td>
+
+          <button
+            class="action-btn success-btn"
+            onclick="updateStatus('${id}','Success')"
+          >
+            Success
+          </button>
+
+          <button
+            class="action-btn pending-btn"
+            onclick="updateStatus('${id}','Pending')"
+          >
+            Pending
+          </button>
+
+          <button
+            class="action-btn cancel-btn"
+            onclick="updateStatus('${id}','Cancelled')"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="action-btn delete-btn"
+            onclick="deleteTransaction('${id}')"
+          >
+            Delete
+          </button>
+
+        </td>
+
+      </tr>
     `;
   });
-});
 
-/* UPDATE FUNCTION */
-function update(id){
-  const status = document.getElementById("status-"+id).value;
-  const note = document.getElementById("note-"+id).value;
+  if(html === ""){
 
-  db.ref("transactions/"+id).update({
-    status: status,
-    adminNote: note
+    html = `
+      <tr>
+        <td colspan="12" class="empty">
+          No matching transactions found
+        </td>
+      </tr>
+    `;
+  }
+
+  tableBody.innerHTML = html;
+}
+
+/* =========================
+   UPDATE STATUS
+========================= */
+
+function updateStatus(id, status){
+
+  db.ref("transactions/" + id).update({
+    status: status
   });
 
-  alert("Updated!");
 }
+
+/* =========================
+   DELETE TRANSACTION
+========================= */
+
+function deleteTransaction(id){
+
+  const confirmDelete = confirm(
+    "Are you sure you want to delete this transaction?"
+  );
+
+  if(!confirmDelete) return;
+
+  db.ref("transactions/" + id).remove();
+}
+
+/* =========================
+   EVENTS
+========================= */
+
+searchInput.addEventListener("input", renderTransactions);
+
+filterStatus.addEventListener("change", renderTransactions);
+
+document
+  .getElementById("refreshBtn")
+  .addEventListener("click", loadTransactions);
+
+/* =========================
+   INIT
+========================= */
+
+loadTransactions();
 </script>
 
 </body>
