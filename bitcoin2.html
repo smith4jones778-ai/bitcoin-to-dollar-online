@@ -1,110 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto Exchange Portal</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Secure Crypto Exchange Portal</title>
 
 <style>
-body {
+*{
   margin:0;
-  font-family: 'Segoe UI', Arial;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'Segoe UI', Arial, sans-serif;
   background:#eef2f7;
+  color:#222;
+  min-height:100vh;
+  padding-bottom:40px;
 }
 
 /* HEADER */
-.header {
+.header{
   background:#0a1f44;
   color:white;
-  padding:20px;
+  padding:25px 20px;
   text-align:center;
+  box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
-.header h1 {
-  margin:0;
-  font-size:20px;
+.header h1{
+  font-size:24px;
+  margin-bottom:5px;
 }
 
-.header p {
-  font-size:13px;
-  opacity:0.8;
+.header p{
+  font-size:14px;
+  opacity:0.9;
 }
 
 /* CARD */
-.card {
+.card{
+  width:95%;
   max-width:520px;
   margin:20px auto;
   background:white;
-  padding:20px;
-  border-radius:14px;
+  padding:22px;
+  border-radius:16px;
   box-shadow:0 8px 25px rgba(0,0,0,0.08);
 }
 
-input, select {
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:8px;
-  border:1px solid #ddd;
+.card h3{
+  margin-bottom:12px;
+  color:#0a1f44;
 }
 
-button {
+.info{
+  font-size:13px;
+  color:#666;
+  margin-bottom:10px;
+  line-height:1.5;
+}
+
+input,
+select{
+  width:100%;
+  padding:13px;
+  margin-top:12px;
+  border-radius:10px;
+  border:1px solid #dcdcdc;
+  outline:none;
+  transition:0.3s;
+  font-size:14px;
+}
+
+input:focus,
+select:focus{
+  border-color:#0a84ff;
+  box-shadow:0 0 0 3px rgba(10,132,255,0.15);
+}
+
+button{
   width:100%;
   padding:13px;
   margin-top:15px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
   background:#0a84ff;
   color:white;
-  font-weight:bold;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+  font-size:15px;
 }
 
-button.secondary {
+button:hover{
+  opacity:0.92;
+  transform:translateY(-1px);
+}
+
+button.secondary{
   background:#6c757d;
 }
 
-button.danger {
+button.danger{
   background:#dc3545;
 }
 
-.copy-box {
+.copy-box{
   display:flex;
-  gap:6px;
+  gap:8px;
   margin-top:10px;
 }
 
-.copy-box input { flex:1; }
+.copy-box input{
+  flex:1;
+  margin-top:0;
+}
 
-.copy-box button {
-  width:90px;
+.copy-box button{
+  width:100px;
+  margin-top:0;
   background:#28a745;
 }
 
-.hidden { display:none; }
+.hidden{
+  display:none !important;
+}
 
 /* STATUS */
-.status {
-  padding:10px;
-  margin-top:15px;
-  border-radius:6px;
+.status{
+  padding:14px;
+  margin-top:18px;
+  border-radius:10px;
   background:#f1f5ff;
   text-align:center;
   font-weight:bold;
+  color:#0a1f44;
 }
 
 /* LOADER */
-.loader {
+.loader{
   border:5px solid #eee;
   border-top:5px solid #0a84ff;
   border-radius:50%;
-  width:50px;
-  height:50px;
+  width:55px;
+  height:55px;
   margin:30px auto;
   animation:spin 1s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+.summary-item{
+  margin-bottom:10px;
+  line-height:1.6;
+}
+
+.success{
+  background:#d4edda;
+  color:#155724;
+}
+
+.pending{
+  background:#fff3cd;
+  color:#856404;
+}
+
+.error{
+  background:#f8d7da;
+  color:#721c24;
+}
+
+@media(max-width:500px){
+  .copy-box{
+    flex-direction:column;
+  }
+
+  .copy-box button{
+    width:100%;
+  }
 }
 </style>
 </head>
@@ -120,191 +199,474 @@ button.danger {
 <div class="card" id="formBox">
   <h3>Start Transaction</h3>
 
-  <p style="font-size:13px;color:#666;">
-    Fill your details correctly. Follow instructions carefully for successful processing.
+  <p class="info">
+    Fill in your correct details and follow all instructions carefully
+    to ensure successful processing of your transaction.
   </p>
 
-  <input id="name" placeholder="Full Name" required>
-  <input id="email" placeholder="Email">
-  <input id="phone" placeholder="Phone Number">
-  <input id="location" placeholder="Location">
+  <input type="text" id="name" placeholder="Full Name" />
+  <input type="email" id="email" placeholder="Email Address" />
+  <input type="tel" id="phone" placeholder="Phone Number" />
+  <input type="text" id="location" placeholder="Location" />
 
-  <select id="type" onchange="toggleMode()">
+  <select id="type">
     <option value="buy">Buy Bitcoin</option>
     <option value="sell">Sell Bitcoin</option>
   </select>
 
-  <input id="usd" type="number" placeholder="Amount in USD">
-  <input id="btc" type="number" placeholder="BTC Equivalent">
+  <input type="number" id="usd" placeholder="Amount in USD" min="0" />
+  <input type="number" id="btc" placeholder="BTC Equivalent" min="0" step="0.000001" />
 
-  <!-- BUY -->
+  <!-- BUY SECTION -->
   <div id="buySection">
-    <p><b>Send Payment To:</b></p>
+
+    <p style="margin-top:15px;">
+      <b>Send Payment To:</b>
+    </p>
+
     <div class="copy-box">
-      <input id="bankDetails" value="Bank: Access Bank | Acc: 0123456789 | Crypto Ltd" readonly>
-      <button onclick="copyText('bankDetails')">Copy</button>
+      <input
+        id="bankDetails"
+        value="Bank: Access Bank | Acc: 0123456789 | Crypto Ltd"
+        readonly
+      />
+      <button type="button" id="copyBankBtn">Copy</button>
     </div>
-    <input id="userWallet" placeholder="Your BTC Wallet Address">
+
+    <input
+      type="text"
+      id="userWallet"
+      placeholder="Your BTC Wallet Address"
+    />
   </div>
 
-  <!-- SELL -->
+  <!-- SELL SECTION -->
   <div id="sellSection" class="hidden">
-    <p><b>Send BTC To:</b></p>
+
+    <p style="margin-top:15px;">
+      <b>Send BTC To:</b>
+    </p>
+
     <div class="copy-box">
-      <input id="btcAddress" value="bc1qexamplewalletaddress12345xyz" readonly>
-      <button onclick="copyText('btcAddress')">Copy</button>
+      <input
+        id="btcAddress"
+        value="bc1qexamplewalletaddress12345xyz"
+        readonly
+      />
+      <button type="button" id="copyBtcBtn">Copy</button>
     </div>
 
-    <input id="bankName" placeholder="Your Bank Name">
-    <input id="accountNumber" placeholder="Account Number">
-    <input id="accountName" placeholder="Account Name">
+    <input type="text" id="bankName" placeholder="Your Bank Name" />
+    <input type="text" id="accountNumber" placeholder="Account Number" />
+    <input type="text" id="accountName" placeholder="Account Name" />
   </div>
 
-  <button onclick="startProcessing()">Proceed</button>
+  <button type="button" id="proceedBtn">Proceed</button>
 </div>
 
 <!-- LOADING -->
 <div class="card hidden" id="loadingBox">
   <div class="loader"></div>
-  <p style="text-align:center;">Processing...</p>
+  <p style="text-align:center;">Processing transaction...</p>
 </div>
 
 <!-- SUMMARY -->
 <div class="card hidden" id="summaryBox">
   <h3>Transaction Summary</h3>
+
   <div id="summary"></div>
 
-  <button onclick="confirmTransaction()">Confirm</button>
-  <button class="danger" onclick="cancelTransaction()">Cancel</button>
+  <button type="button" id="confirmBtn">Confirm Transaction</button>
+
+  <button
+    type="button"
+    class="danger"
+    id="cancelBtn"
+  >
+    Cancel
+  </button>
 </div>
 
 <!-- DASHBOARD -->
 <div class="card hidden" id="dashboard">
   <h3>Transaction Dashboard</h3>
+
   <div id="details"></div>
-  <div class="status" id="status"></div>
+
+  <div class="status pending" id="status">
+    Waiting for updates...
+  </div>
+
+  <button
+    type="button"
+    class="secondary"
+    id="newTransactionBtn"
+  >
+    Start New Transaction
+  </button>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase.js"></script>
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 <script>
+/* =========================
+   FIREBASE CONFIG
+========================= */
+
 const firebaseConfig = {
-    apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
-    authDomain: "year2-9413b.firebaseapp.com",
-    databaseURL: "https://year2-9413b-default-rtdb.firebaseio.com",
-    projectId: "year2-9413b"
+  apiKey: "AIzaSyCtLoXXW7Rkkja7HSBrkkcGqZsbj7kQLjw",
+  authDomain: "year2-9413b.firebaseapp.com",
+  databaseURL: "https://year2-9413b-default-rtdb.firebaseio.com",
+  projectId: "year2-9413b"
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.database();
 
-let rate = 65000;
+/* =========================
+   ELEMENTS
+========================= */
+
+const formBox = document.getElementById("formBox");
+const loadingBox = document.getElementById("loadingBox");
+const summaryBox = document.getElementById("summaryBox");
+const dashboard = document.getElementById("dashboard");
+
+const summary = document.getElementById("summary");
+const details = document.getElementById("details");
+const statusBox = document.getElementById("status");
+
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+const phoneInput = document.getElementById("phone");
+const locationInput = document.getElementById("location");
+
+const typeSelect = document.getElementById("type");
+
+const usdInput = document.getElementById("usd");
+const btcInput = document.getElementById("btc");
+
+const buySection = document.getElementById("buySection");
+const sellSection = document.getElementById("sellSection");
+
+const userWallet = document.getElementById("userWallet");
+
+const bankName = document.getElementById("bankName");
+const accountNumber = document.getElementById("accountNumber");
+const accountName = document.getElementById("accountName");
+
+/* =========================
+   VARIABLES
+========================= */
+
+const rate = 65000;
 let tempData = null;
 
-// conversion
-usd.oninput = ()=> btc.value = (usd.value / rate).toFixed(6);
-btc.oninput = ()=> usd.value = (btc.value * rate).toFixed(2);
+/* =========================
+   CONVERSION
+========================= */
 
-// toggle
-function toggleMode(){
-  buySection.classList.toggle("hidden", type.value !== "buy");
-  sellSection.classList.toggle("hidden", type.value !== "sell");
+usdInput.addEventListener("input", () => {
+  const usd = parseFloat(usdInput.value);
+
+  if (!isNaN(usd)) {
+    btcInput.value = (usd / rate).toFixed(6);
+  } else {
+    btcInput.value = "";
+  }
+});
+
+btcInput.addEventListener("input", () => {
+  const btc = parseFloat(btcInput.value);
+
+  if (!isNaN(btc)) {
+    usdInput.value = (btc * rate).toFixed(2);
+  } else {
+    usdInput.value = "";
+  }
+});
+
+/* =========================
+   TOGGLE BUY/SELL
+========================= */
+
+function toggleMode() {
+  if (typeSelect.value === "buy") {
+    buySection.classList.remove("hidden");
+    sellSection.classList.add("hidden");
+  } else {
+    sellSection.classList.remove("hidden");
+    buySection.classList.add("hidden");
+  }
 }
 
-// copy
-function copyText(id){
-  navigator.clipboard.writeText(document.getElementById(id).value);
-  alert("Copied!");
+typeSelect.addEventListener("change", toggleMode);
+
+/* =========================
+   COPY FUNCTION
+========================= */
+
+async function copyText(id) {
+  try {
+    const value = document.getElementById(id).value;
+
+    await navigator.clipboard.writeText(value);
+
+    alert("Copied successfully!");
+  } catch (error) {
+    alert("Copy failed.");
+    console.error(error);
+  }
 }
 
-// start
-function startProcessing(){
-  if(!name.value || !email.value){
-    alert("Fill required fields");
-    return;
+document
+  .getElementById("copyBankBtn")
+  .addEventListener("click", () => copyText("bankDetails"));
+
+document
+  .getElementById("copyBtcBtn")
+  .addEventListener("click", () => copyText("btcAddress"));
+
+/* =========================
+   VALIDATION
+========================= */
+
+function validateForm() {
+
+  if (
+    !nameInput.value.trim() ||
+    !emailInput.value.trim() ||
+    !usdInput.value.trim() ||
+    !btcInput.value.trim()
+  ) {
+    alert("Please fill all required fields.");
+    return false;
   }
 
+  if (typeSelect.value === "buy") {
+
+    if (!userWallet.value.trim()) {
+      alert("Please enter your BTC wallet address.");
+      return false;
+    }
+
+  } else {
+
+    if (
+      !bankName.value.trim() ||
+      !accountNumber.value.trim() ||
+      !accountName.value.trim()
+    ) {
+      alert("Please complete your bank details.");
+      return false;
+    }
+
+  }
+
+  return true;
+}
+
+/* =========================
+   START PROCESSING
+========================= */
+
+function startProcessing() {
+
+  if (!validateForm()) return;
+
   tempData = {
-    name:name.value,
-    email:email.value,
-    phone:phone.value,
-    location:location.value,
-    type:type.value,
-    usd:usd.value,
-    btc:btc.value,
-    status:"submitted",
-    time:new Date().toLocaleString()
+    name: nameInput.value.trim(),
+    email: emailInput.value.trim(),
+    phone: phoneInput.value.trim(),
+    location: locationInput.value.trim(),
+    type: typeSelect.value,
+    usd: usdInput.value,
+    btc: btcInput.value,
+    status: "Pending",
+    createdAt: new Date().toISOString(),
+    time: new Date().toLocaleString()
   };
 
-  if(type.value==="buy"){
-    tempData.wallet = userWallet.value;
+  if (typeSelect.value === "buy") {
+
+    tempData.wallet = userWallet.value.trim();
+
   } else {
-    tempData.bankName = bankName.value;
-    tempData.accountNumber = accountNumber.value;
-    tempData.accountName = accountName.value;
+
+    tempData.bankName = bankName.value.trim();
+    tempData.accountNumber = accountNumber.value.trim();
+    tempData.accountName = accountName.value.trim();
   }
 
   formBox.classList.add("hidden");
   loadingBox.classList.remove("hidden");
 
-  setTimeout(showSummary,1200);
+  setTimeout(showSummary, 1500);
 }
 
-// summary
-function showSummary(){
+document
+  .getElementById("proceedBtn")
+  .addEventListener("click", startProcessing);
+
+/* =========================
+   SHOW SUMMARY
+========================= */
+
+function showSummary() {
+
   loadingBox.classList.add("hidden");
   summaryBox.classList.remove("hidden");
 
   summary.innerHTML = `
-    <b>${tempData.name}</b><br>
-    ${tempData.type.toUpperCase()}<br>
-    $${tempData.usd} / ${tempData.btc} BTC<br>
-    ${tempData.time}
+    <div class="summary-item">
+      <b>Name:</b> ${tempData.name}
+    </div>
+
+    <div class="summary-item">
+      <b>Transaction:</b> ${tempData.type.toUpperCase()}
+    </div>
+
+    <div class="summary-item">
+      <b>USD:</b> $${tempData.usd}
+    </div>
+
+    <div class="summary-item">
+      <b>BTC:</b> ${tempData.btc} BTC
+    </div>
+
+    <div class="summary-item">
+      <b>Time:</b> ${tempData.time}
+    </div>
   `;
 }
 
-// cancel
-function cancelTransaction(){
+/* =========================
+   CANCEL TRANSACTION
+========================= */
+
+function cancelTransaction() {
+
   summaryBox.classList.add("hidden");
   formBox.classList.remove("hidden");
 }
 
-// confirm
-function confirmTransaction(){
-  const id = "TX-" + Date.now();
-  localStorage.setItem("userId", id);
+document
+  .getElementById("cancelBtn")
+  .addEventListener("click", cancelTransaction);
 
-  db.ref("transactions/"+id).set(tempData);
+/* =========================
+   CONFIRM TRANSACTION
+========================= */
 
-  summaryBox.classList.add("hidden");
-  loadDashboard(id);
+async function confirmTransaction() {
+
+  try {
+
+    const id = "TX-" + Date.now();
+
+    localStorage.setItem("userId", id);
+
+    await db.ref("transactions/" + id).set(tempData);
+
+    summaryBox.classList.add("hidden");
+
+    loadDashboard(id);
+
+  } catch (error) {
+
+    alert("Transaction failed to save.");
+
+    console.error(error);
+  }
 }
 
-// dashboard
-function loadDashboard(id){
+document
+  .getElementById("confirmBtn")
+  .addEventListener("click", confirmTransaction);
+
+/* =========================
+   DASHBOARD
+========================= */
+
+function loadDashboard(id) {
+
   dashboard.classList.remove("hidden");
 
-  db.ref("transactions/"+id).on("value", snap=>{
-    const d = snap.val();
-    if(!d) return;
+  db.ref("transactions/" + id).on("value", (snapshot) => {
+
+    const d = snapshot.val();
+
+    if (!d) return;
 
     details.innerHTML = `
-      <b>${d.name}</b><br>
-      ${d.type}<br>
-      $${d.usd} / ${d.btc} BTC<br>
-      ${d.time}
+      <div class="summary-item">
+        <b>Name:</b> ${d.name}
+      </div>
+
+      <div class="summary-item">
+        <b>Transaction:</b> ${d.type.toUpperCase()}
+      </div>
+
+      <div class="summary-item">
+        <b>USD:</b> $${d.usd}
+      </div>
+
+      <div class="summary-item">
+        <b>BTC:</b> ${d.btc} BTC
+      </div>
+
+      <div class="summary-item">
+        <b>Time:</b> ${d.time}
+      </div>
     `;
 
-    status.innerText = "Status: " + d.status;
+    statusBox.innerText = "Status: " + d.status;
+
+    statusBox.className = "status";
+
+    const status = d.status.toLowerCase();
+
+    if (status.includes("success")) {
+      statusBox.classList.add("success");
+    } else if (status.includes("pending")) {
+      statusBox.classList.add("pending");
+    } else {
+      statusBox.classList.add("error");
+    }
   });
 }
 
-// auto load
-let userId = localStorage.getItem("userId");
-if(userId){
+/* =========================
+   NEW TRANSACTION
+========================= */
+
+document
+  .getElementById("newTransactionBtn")
+  .addEventListener("click", () => {
+
+    localStorage.removeItem("userId");
+
+    location.reload();
+  });
+
+/* =========================
+   AUTO LOAD DASHBOARD
+========================= */
+
+const savedUserId = localStorage.getItem("userId");
+
+if (savedUserId) {
+
   formBox.classList.add("hidden");
-  loadDashboard(userId);
+
+  loadDashboard(savedUserId);
 }
+
+/* INITIALIZE */
+toggleMode();
 </script>
 
 </body>
